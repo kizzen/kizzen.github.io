@@ -710,10 +710,16 @@ if(target.length)
 {$(document).off("scroll");$(".pt-overlay .linked-overlay .active").each(function(index)
 {$(this).removeClass("active");});$(this).children(":first").addClass("active");$('html,body').animate({scrollTop:(topPosition-fixedOffset-collapseOffset)},1000,function(){$(document).on("scroll",onScroll);setActiveLinks();});return false;}}});});}
 setSmoothLinks();function validateField(fieldId){if($(fieldId).get(0).nodeName=="LABEL")
-{if($(fieldId).children('input:checked').length==0)
+{if($(fieldId).has('.multichoice-checkbox-wrapper'))
+{if($(fieldId).find('.multichoice-field-wrapper label').siblings('input:checked').length==0)
 {$(fieldId).css("outline","-webkit-focus-ring-color auto 5px");$(fieldId).css("outline-offset","-2px");$(fieldId).css("outline-color","red");$(fieldId).css("outline-width","3px");return false;}
 else
 {$(fieldId).css("outline-width","0px");return true;}}
+else
+{if($(fieldId).children('input:checked').length==0)
+{$(fieldId).css("outline","-webkit-focus-ring-color auto 5px");$(fieldId).css("outline-offset","-2px");$(fieldId).css("outline-color","red");$(fieldId).css("outline-width","3px");return false;}
+else
+{$(fieldId).css("outline-width","0px");return true;}}}
 else if((($.trim($(fieldId).val())=="")||($(fieldId).val()=="placeholder"))&&(!$(fieldId).hasClass('recaptcha-div'))&&(!$(fieldId).hasClass('file-upload-wrapper')))
 {$(fieldId).css("outline","-webkit-focus-ring-color auto 5px");$(fieldId).css("outline-offset","-2px");$(fieldId).css("outline-color","red");$(fieldId).css("outline-width","3px");return false;}
 else if($(fieldId).hasClass('recaptcha-div'))
@@ -733,7 +739,7 @@ else
 {$(fieldId).css("outline-width","0px");return true;}}
 function validateEmail(email){var re=/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;return re.test(email);}
 function validateFields(formId){var fieldValid;var validEmail=false;var fieldsValid=true;var emailAddress=$(formId+" #email").val();validEmail=validateEmail(emailAddress);if(!validEmail){fieldsValid=false;$(formId+" #email").css("outline","-webkit-focus-ring-color auto 5px");$(formId+" #email").css("outline-offset","-2px");$(formId+" #email").css("outline-color","red");$(formId+" #email").css("outline-width","3px");}else{$(formId+" #email").css("outline-width","0px");}
-$(formId).children().each(function(){if((this.nodeName!="BUTTON"&&$(this).prop('required')&&(this.id!='email'))||(this.nodeName=="LABEL"&&$(this).children("input").prop('required'))||(this.nodeName=="DIV"&&$(this).hasClass('recaptcha-wrapper'))||(this.nodeName=="DIV"&&$(this).hasClass('recaptcha-div'))||(this.nodeName=="DIV"&&$(this).hasClass('file-upload-wrapper')))
+$(formId).children().each(function(){if((this.nodeName!="BUTTON"&&$(this).prop('required')&&(this.id!='email'))||(this.nodeName=="LABEL"&&$(this).children("input").prop('required'))||(this.nodeName=="DIV"&&$(this).hasClass('recaptcha-wrapper'))||(this.nodeName=="DIV"&&$(this).hasClass('recaptcha-div'))||(this.nodeName=="DIV"&&$(this).hasClass('file-upload-wrapper'))||(this.nodeName=="LABEL"&&$(this).hasClass('form-multichoice-label')&&$(this).attr('data-index')=='required'))
 {if($(this).hasClass('recaptcha-wrapper'))
 {fieldValid=validateField(formId+" #"+$(this).find(".recaptcha-div").attr("id"));}
 else if($(this).hasClass('recaptcha-div'))
@@ -750,6 +756,11 @@ else
 {$(uploadField).next().html("No file chosen");}}
 function postPixel(formId)
 {var submitText=$("#"+formId).children("#btn-submit").html();var submitMid=$("#"+formId).children("#btn-submit").attr("data-btn-text-mid");var submitFinal=$("#"+formId).children("#btn-submit").attr("data-btn-text-final");$("#"+formId).children("#btn-submit").html(submitMid);$("#"+formId).children("#btn-submit").attr('disabled',true);var form={};var fieldName;var fieldValue;var fieldType;var formData=new FormData();form.fields=[];form.destination_emails=[];form.subject=$("#"+formId+' #email-subject').attr("subject");$("#"+formId).children().each(function(){fieldName="";fieldType="";fieldValue="";fieldPlaceholder="";if((this.nodeName!="BUTTON")&&(this.nodeName!="BR")&&(this.nodeName!="DIV"))
+{if(this.nodeName=="LABEL"&&$(this).hasClass('form-multichoice-label'))
+{var selectedVal=[];$(this).find('.multichoice-checkbox-wrapper .multichoice-field-wrapper').each(function(){if($(this).children("input").length>0)
+{fieldType=$(this).children("input")[0].type;fieldName=$(this).children("input")[0].name;var elem=$(this).children("input")[0];if((fieldType=="checkbox")&&($(elem).is(':checked')))
+{fieldPlaceholder=$(this).children("input")[0].placeholder;fieldValue=$(this).children("input")[0].value;fieldId=$(this).children("input")[0].id;selectedVal.push({id:fieldId,text:fieldValue});}}});form.fields.push({id:this.id,name:fieldName,placeholder:fieldPlaceholder,type:fieldType,value:selectedVal});}
+else
 {if(this.nodeName=="LABEL")
 {if($(this).children("input").length>0)
 {fieldName=$(this).children("input")[0].name;fieldType=$(this).children("input")[0].type;if(fieldType=="checkbox")
@@ -758,9 +769,10 @@ function postPixel(formId)
 else
 {fieldValue="not checked";}}}}
 else
-{fieldName=this.name;fieldType=this.type;fieldValue=this.value;fieldPlaceholder=this.placeholder;}
+{fieldName=this.name;fieldType=this.type;fieldValue=this.value;fieldPlaceholder=this.placeholder;if(fieldType=='select-one')
+{fieldText=$(this).find('option:selected').text();fieldValue=[{id:fieldValue,text:fieldText}];}}
 if(fieldType!="")
-{form.fields.push({id:this.id,name:fieldName,placeholder:fieldPlaceholder,type:fieldType,value:fieldValue});}}
+{form.fields.push({id:this.id,name:fieldName,placeholder:fieldPlaceholder,type:fieldType,value:fieldValue});}}}
 else if((this.nodeName=="DIV"))
 {if($(this).children("input").length>0)
 {fieldName=$(this).children("input")[0].name;fieldType=$(this).children("input")[0].type;fieldPlaceholder=$(this).children("input")[0].placeholder;fieldValue=$(this).children("input")[0].value;fieldId=$(this).children("input")[0].id;if(fieldType=="file")
@@ -775,10 +787,13 @@ $("#"+formId+' #destination-emails').children().each(function(){form.destination
 {$("#"+formId+" #error-message").html(data.errorMessage);$("#"+formId+" #error-message").show();$("#"+formId).children("#btn-submit").html(submitText);$("#"+formId).children("#btn-submit").attr('disabled',false);$("#"+formId).children("#btn-submit").removeClass('submitted');grecaptcha.reset(currentCaptchaId);currentCaptchaId="";currentCaptchaResponse="";}
 else
 {$("#"+formId+" #error-message").html("");$("#"+formId+" #error-message").hide();$("#"+formId).children().each(function(){if(this.nodeName=="LABEL")
-{$(this).children("input").prop('checked',false);}
+{$(this).children("input").prop('checked',false);if($(this).has('.multichoice-checkbox-wrapper'))
+{$(this).find('.multichoice-checkbox-wrapper').children(".multichoice-field-wrapper").each(function(){$(this).children("input").prop('checked',false);});}}
 else if((this.nodeName!="BUTTON")&&(this.nodeName!="BR")&&(this.id!="overlay_id"))
 {this.value="";}
-$(this).find("input[type=file]").val("");$(this).find("#file-upload-label").html("No file chosen");});if(location.hostname=="www.dialadigger.net.au")
+$(this).find("input[type=file]").val("");$(this).find("#file-upload-label").html("No file chosen");if(this.type=='select-one')
+{var selectId=this.id;var defaultId="";$(this).find("option").each(function(){if($(this).attr("data-index")=="default")
+{defaultId=$(this).val();}});$("#"+selectId).val(defaultId);setDefaultOptionsInFormDropdown();}});if(location.hostname=="www.dialadigger.net.au")
 {$("#"+formId).children("#btn-submit").html("Thank you");}
 else if(location.hostname=="www.alivepharmacy.com.au")
 {$("#error-message")[0].style.setProperty('color','#000000','important');$("#error-message").html("Thank you for your enquiry, one of our staff will be with you shortly during business hours.");$("#error-message").show();$("#"+formId).children("#btn-submit").html("Submitted!");}
@@ -800,7 +815,43 @@ var currentElementId=$(this).attr("id");recaptchaList.push({currentForm:currentF
 function loadRecaptchaJS()
 {if($(".recaptcha-div").length)
 {var s=document.createElement('script');s.type='text/javascript';s.async=true;s.defer=true;s.src='https://www.google.com/recaptcha/api.js?onload=renderCaptcha&render=explicit';var x=document.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);}}
-$(document).ready(function(){loadRecaptchaJS();$(".pt-form #btn-reset").click(function(){$("#name").val("");$("#email").val("");$("#phone").val("");$("#website").val("");$("#enquiry").val("");resetFields();});$(".pt-form #btn-submit").click(function(){if(validateFields('#'+$(this).parent().attr("id"))){postPixel($(this).parent().attr("id"));}});});
+function setDefaultOptionsInFormDropdown()
+{$(".editor-form-dropdown").each(function(){var id=$(this).attr("id");var selectedVal=$("#"+id+" option:selected").text();var customDropdown=$(this).next();$(customDropdown).find(".selected-option").find(".text").text(selectedVal);var height=$(customDropdown).height();$(customDropdown).find(".selected-option").siblings(".selected-option-ul").css('top',height+"px");});}
+$(document).ready(function(){loadRecaptchaJS();$(".pt-form #btn-reset").click(function(){$("#name").val("");$("#email").val("");$("#phone").val("");$("#website").val("");$("#enquiry").val("");resetFields();});$(".pt-form #btn-submit").click(function(){if(validateFields('#'+$(this).parent().attr("id"))){postPixel($(this).parent().attr("id"));}});setDefaultOptionsInFormDropdown();function activateFormDropdown(e)
+{var elem=e.target;var ulElem=$(elem).siblings(".selected-option-ul");if(!($(ulElem).is(":visible")))
+{$(ulElem).show();$(elem).toggleClass("active");$(elem).find(".chevron").toggleClass("bottom");}
+e.stopPropagation();}
+function selectFormDropdownOption(elem)
+{var selectedId=$(elem).attr("data-index");$(elem).parent().parent().siblings(".editor-form-dropdown").val(selectedId);$(elem).parent().siblings(".selected-option").find(".text").text($(elem).text());$(".selected-option-ul li").each(function()
+{$(this).removeClass("selected");});$(elem).addClass("selected");}
+$(".selected-option-ul li").on('click',function(){selectFormDropdownOption($(this));deactivateFromDropdown($(this).parent().siblings('.selected-option'));});var activatedViaFocusIn=false;$(".selected-option").on('focusin click',function(e){var elem=e.target;if((e.type=='click')&&(!activatedViaFocusIn)&&($(this).siblings('.selected-option-ul').is(":visible")))
+{deactivateFromDropdown($(this));}
+else
+{$(".selected-option").each(function(){if($(this).siblings('.selected-option-ul').is(":visible")&&($(elem).hasClass('selected-option')))
+{deactivateFromDropdown($(this));}});if(e.type=='focusin')
+{activatedViaFocusIn=true;}
+else
+{activatedViaFocusIn=false;}
+activateFormDropdown(e);e.stopPropagation();}});function deactivateFromDropdown(elem)
+{var ulElem=$(elem).siblings(".selected-option-ul");if(($(ulElem).is(":visible")))
+{$(elem).toggleClass("active");$(elem).find(".chevron").toggleClass("bottom");$(ulElem).hide();}}
+$(document).on('click',function(event){tabPressed=false;if(!$(event.target).hasClass('selected-option active'))
+{$(".selected-option-ul").each(function(){if($(this).is(":visible"))
+{$(".selected-option-ul").hide();$(this).siblings(".selected-option").toggleClass("active");$(this).siblings(".selected-option").find(".chevron").toggleClass("bottom");}});}});var tabPressed=false;var searchStr="";$(document).keydown(function(e){tabPressed=false;if(e.which==13)
+{var selectedElem=document.activeElement;if($(selectedElem).parent().hasClass("selected-option-ul"))
+{selectFormDropdownOption(selectedElem);deactivateFromDropdown($(selectedElem).parent().siblings(".selected-option"));}}
+else if(e.which==9)
+{tabPressed=true;}
+else
+{$(".selected-option-ul").each(function(){if($(this).is(":visible"))
+{searchStr+=String.fromCharCode(e.which).toLowerCase();if(searchStr!="")
+{if(e.which==32)
+{e.preventDefault();}}
+var re=new RegExp(searchStr,'g');$(this).find("li").each(function(){var optionStr=$(this).text().toLowerCase();if(optionStr.match(re))
+{$(this).focus();}});setTimeout(function(){searchStr="";},1000);}});}});$(".selected-option-ul li").on('focusout',function(e){if(tabPressed)
+{var i=0;var thisId=$(this).attr('data-index');var items=$(this).parent().children().length;var lastItemId="";$(this).parent().find("li").each(function(){i++;if(i==items)
+{lastItemId=$(this).attr("data-index");}});if($(this).attr('data-index')==lastItemId)
+{deactivateFromDropdown($(this).parent().siblings('.selected-option'));}}});$("#file-upload-container input[type='file']").on('focusin',function(e){var focusColor=$(this).parent().attr('focus-data');$(this).parent().css('border','1px solid #'+focusColor);});$("#file-upload-container input[type='file']").on('focusout',function(e){var defaultColor=$(this).parent().attr('default-color');$(this).parent().css('border','1px solid #'+defaultColor);});});
 ;/* Note: this is taken from https://github.com/oslego/PhotoSwipe/tree/non-modal-scroll to include the scrolling on mobile fix */
 
 /*! PhotoSwipe - v4.1.1 - 2016-03-11
