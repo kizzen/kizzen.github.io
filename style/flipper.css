@@ -1,0 +1,61 @@
+.flip {
+    height: 169px;
+    width: 300px;
+    margin: 0 auto;
+}
+
+.flip img {
+    max-width: 300px;
+    height: auto;
+}
+
+.flip .back {
+    background: #009688;
+    color: #fff;
+    text-align: center;
+}
+
+@-webkit-keyframes image_blur {
+    0% {
+        -webkit-filter: blur(0px);
+    }
+    50% {
+        -webkit-filter: blur(5px);
+    }
+    100% {
+        -webkit-filter: blur(0px);
+    }
+}
+
+.image-project:hover {
+    -webkit-animation: image_blur 1s;
+}
+
+
+.image-content {
+    position: absolute;
+    bottom: 80px;
+    width: 100%;
+    height: 20px;
+    color: white;
+}
+
+.project-title {
+    color: whitesmoke;
+    font-family: Verdana;
+    padding-top: 2em;
+    font-weight: bold;
+}
+
+.col-centered {
+    float: none;
+    margin: 0 auto;
+}
+
+.cont{
+    width:300px;
+}
+.col-centered{
+    float: none;
+    margin: 0 auto;
+}
