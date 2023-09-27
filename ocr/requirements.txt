@@ -1,0 +1,6 @@
+certifi==2020.4.5.1
+numpy==1.18.4
+opencv-python==4.2.0.34
+Pillow==7.1.2
+pytesseract==0.3.4
+virtualenv==16.4.3
