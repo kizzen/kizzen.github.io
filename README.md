@@ -1,4 +1,4 @@
-Welcome to my portfolio site. 
+### Welcome to my portfolio site. 
 
 Template: 
 Strata by HTML5 UP
